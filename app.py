@@ -13,6 +13,7 @@ import time
 from transformers import MarianMTModel, MarianTokenizer
 #import nltk
 from typing import List
+import numpy as np
 #import json
 
 #df
@@ -85,9 +86,9 @@ lang_supported = [
 
 #langs = ['en','fr','de']
 #langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
-langs_dict = {'en':'English','de':'German'}
+#langs_dict = {'en':'English','de':'German'}
 
-#langs_dict = {'en':'English'}
+langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
 
@@ -108,9 +109,9 @@ pretrain = {i:{'model_tok':get_model('en',i)} for i in langs_dict.keys()}
 app = dash.Dash('dash-covid19-translator',
                 meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
                 external_stylesheets=[dbc.themes.BOOTSTRAP])
-app.title = "Dash Covid-19 Multilingual"
+app.title = "Multilingual Covid-19 Dashboard"
 
-app_name = "Dash Covid-19 Multilingual" 
+app_name = "Multilingual Covid-19 Dashboard" 
 
 server = app.server
 
@@ -257,8 +258,24 @@ tab1 = dbc.Card([
                 ])
         ])
 
+#nav
+PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+
+
+navbar = dbc.NavbarSimple(
+   
+    brand=app_name,
+    brand_href="#",
+    color="info",
+
+    dark=True,
+    style={'width':'100%'}
+)
+
 #app layout
 app.layout = dbc.Container([
+            dbc.Row(navbar),
+
           dbc.Tabs([
                  dbc.Tab(tab1, id="label_tab1",label="Continent analysis"),
                  
@@ -350,7 +367,12 @@ def info_cards(location_country):
     new_deaths = data_world['new_deaths']
     total_tests = data_world['total_tests']
     new_tests = data_world['new_tests']
-    
+    print(type(total_tests.values[0]))
+    if np.isnan(total_tests.values[0]):
+        total_tests = 'Not available'
+    if np.isnan(new_tests.values[0]):
+        new_tests = 'Not available'
+
     return location_continent,location_country,date, total_cases, new_cases, total_deaths, new_deaths, total_tests, new_tests
 
 
