@@ -46,8 +46,7 @@ six==1.15.0
 threadpoolctl==2.1.0
 tokenizers==0.8.1rc1
 toml==0.10.1
-#torch==1.5.1
-#torchvision==0.6.1
+https://download.pytorch.org/whl/cpu/torch_stable.html
 tqdm==4.48.0
 transformers==3.0.2
 typed-ast==1.4.1
