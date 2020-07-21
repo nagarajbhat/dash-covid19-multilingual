@@ -86,7 +86,7 @@ lang_supported = [
 
 #langs = ['en','fr','de']
 #langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
-langs_dict = {'en':'English','de':'German','ru':'Russian'}
+langs_dict = {'en':'English','de':'German'}
 
 #langs_dict = {'en':'English'}
 
