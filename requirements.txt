@@ -1,3 +1,4 @@
+-f https://download.pytorch.org/whl/torch_stable.html
 appdirs==1.4.4
 attrs==19.3.0
 black==19.10b0
@@ -46,8 +47,6 @@ six==1.15.0
 threadpoolctl==2.1.0
 tokenizers==0.8.1rc1
 toml==0.10.1
-fastai
-https://download.pytorch.org/whl/cpu/torch-1.0.1.post2-cp36-cp36m-linux_x86_64.whl
 tqdm==4.48.0
 transformers==3.0.2
 typed-ast==1.4.1
