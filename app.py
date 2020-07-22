@@ -24,9 +24,29 @@ df_na = df.dropna(subset=['total_cases','new_cases','total_deaths','new_deaths']
 df_na['date'] = pd.to_datetime(df_na['date'])
 data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(3).iloc[-1]]
 
+# dataframe for map
+country_codes = pd.read_csv('./data/countries_codes.csv')
+df_code  = country_codes.filter(['alpha2','alpha3'])
+df_code['alpha3'] = df_code['alpha3'].str.upper()
+df_code['alpha2'] = df_code['alpha2'].str.upper()
+
+df_merged = df.merge(df_code,left_on='iso_code',right_on='alpha3') #merging country codes
+
+df_loc = pd.read_csv('./data/countries.csv')
+df_loc = df_loc.filter(['country','latitude','longitude']) 
+df_map = df_merged.merge(df_loc,left_on='alpha2',right_on='country') #merging lat long
+
+df_map_latest = df_map[df_map['date']==df_map['date'].max()]
+
+
+
+
+
 
 
 #variables
+graph_template = "plotly_dark"
+ext_stylesheet = dbc.themes.DARKLY
 
 criteria = {'total_cases':'Total cases','total_deaths':'Total Deaths','total_tests':'Total tests'}
 continents = ['All','Asia','Europe','Africa','North America','South America','Oceania']
@@ -86,9 +106,9 @@ lang_supported = [
 
 #langs = ['en','fr','de']
 #langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
-langs_dict = {'en':'English','de':'German'}
+#langs_dict = {'en':'English','de':'German'}
 
-#langs_dict = {'en':'English'}
+langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
 
@@ -108,7 +128,7 @@ pretrain = {i:{'model_tok':get_model('en',i)} for i in langs_dict.keys()}
 #app
 app = dash.Dash('dash-covid19-translator',
                 meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
-                external_stylesheets=[dbc.themes.BOOTSTRAP])
+                external_stylesheets=[ext_stylesheet])
 app.title = "Multilingual Covid-19 Dashboard"
 
 app_name = "Multilingual Covid-19 Dashboard" 
@@ -125,7 +145,7 @@ controls_1a = dbc.Form(
                             id = 'dropdown_language',
                             options = [{'label':langs_dict[i],'value':i} for i in langs_dict.keys()],
                             value = list(langs_dict.keys())[0],
-                             
+                             style={'color':'black'}
                             )
                     ]
         ),
@@ -142,7 +162,9 @@ controls_1b =    dbc.Form([
             dcc.Dropdown(
                     id='dropdown_continent',
                     options=[{'label':i,'value':i} for i in continents],
-                    value='All')
+                    value='All',
+                    style={'color':'black'}
+)
             ]
         ),
 
@@ -153,6 +175,8 @@ controls_1b =    dbc.Form([
                     id='dropdown_country',
                     options=[{'label':i,'value':i} for i in df['location'].unique()],
                     value='World',
+                    style={'color':'black'}
+
                      
                      )
             ]
@@ -167,7 +191,9 @@ controls_1c =     dbc.Form([
             dcc.Dropdown(
                     id='dropdown_criteria',
                     options=[{'label':i,'value':i} for i in criteria.keys()],
-                    value='total_cases')
+                    value='total_cases',
+                    style={'color':'black'}
+)
             ]
         )
                     ])
@@ -241,12 +267,17 @@ tab1 = dbc.Card([
                 html.Br(),
 
                 #graphs
+                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_map_continent')]),
+                html.Br(),
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_line_continent')]),
-
+                html.Br(),
+                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_area_continent')]),
+                html.Br(),
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_treemap_continent')]),
-
+                html.Br(),
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_bar_continent')]),
-
+                html.Br(),
+                
                 html.H6(id="label_not_translated",children=["If any text in this dashboard is untranslated, type or copy paste it here this to translate!"]),
                 dcc.Input(id="input_text", type="text", placeholder=""),
                 html.Button('Translate', id='submit-val'),
@@ -266,10 +297,10 @@ navbar = dbc.NavbarSimple(
    
     brand=app_name,
     brand_href="#",
-    color="info",
+    color="secondary",
 
     dark=True,
-    style={'width':'100%'}
+    style={'width':'100%','text-align':'left'}
 )
 
 #app layout
@@ -277,11 +308,11 @@ app.layout = dbc.Container([
             dbc.Row(navbar),
 
           dbc.Tabs([
-                 dbc.Tab(tab1, id="label_tab1",label="Continent analysis"),
+                 dbc.Tab(tab1, id="label_tab1",label="Analysis"),
                  
         ])
         ],
-            fluid=True,
+            fluid=True
 )
 
     
@@ -328,7 +359,7 @@ def set_lables(trg_language):
     label_select_language = translate(model,tok,'Select language')
     label_select_continent = translate(model,tok,'Select the continent')
     label_select_country = translate(model,tok,'Select the country')
-    label_select_criteria = translate(model,tok,'Select the continent')
+    label_select_criteria = translate(model,tok,'Select the criteria')
 
     label_info1 = translate(model,tok,"Location/Country")
     label_info2 = translate(model,tok,"Date")
@@ -383,21 +414,22 @@ def info_cards(location_country):
     
     
 @app.callback([Output('graph_line_continent','figure'),
-              Output('graph_bar_continent','figure'),
-              Output('graph_treemap_continent','figure')],
+                Output('graph_area_continent','figure')],
               [Input('dropdown_continent','value'),
                Input('dropdown_language','value'),
                Input('dropdown_criteria','value'),
                ])
-def graph_update(continent,trg_language,criteria):
+def line_graphs(continent,trg_language,criteria):
     #line graph - continent
     if continent !='All':
         data = df[df['continent']==continent]
     else:
         data = df
-    data = data.groupby(['location','date']).sum().reset_index()
+    #data = data.groupby(['location','date']).sum().reset_index()
+    data = data.dropna(subset=["location","continent"])
+
     data = data[data.location != 'World']
-    line_fig = px.line(data,x='date',y=criteria,color='location')
+    line_fig = px.line(data,x='date',y=criteria,color='location',template = graph_template)
     model = pretrain[trg_language]['model_tok'][0]
     tok = pretrain[trg_language]['model_tok'][1]
     
@@ -405,9 +437,32 @@ def graph_update(continent,trg_language,criteria):
     text_xaxis = translate(model,tok,'date')
     text_yaxis = translate(model,tok,criteria)
     text_legend = translate(model,tok,'location')
+    line_fig.update_traces(textfont_size=30)
+
     line_fig.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
     yaxis_title=text_yaxis[0],legend_title=text_legend[0])
 
+   #Area
+    area_fig = px.area(data,x="date", y=criteria, color="continent",line_group="location",template = graph_template)
+    text_title = translate(model,tok,f'Area graph - Time line of {criteria} of Covid 19 by continent - {continent}')
+    text_xaxis = translate(model,tok,'date')
+    text_yaxis = translate(model,tok,criteria)
+    text_legend = translate(model,tok,'location')
+    area_fig.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
+    yaxis_title=text_yaxis[0],legend_title=text_legend[0])
+
+    return line_fig,area_fig
+
+
+@app.callback([Output('graph_bar_continent','figure'),
+              Output('graph_treemap_continent','figure')],
+              [Input('dropdown_continent','value'),
+               Input('dropdown_language','value'),
+               Input('dropdown_criteria','value'),
+               ])
+def bar_graphs(continent,trg_language,criteria):
+    model = pretrain[trg_language]['model_tok'][0]
+    tok = pretrain[trg_language]['model_tok'][1]
     #bar graph - continent 
     if continent !='All':
         data = data_latest[data_latest['continent']==continent]
@@ -420,17 +475,62 @@ def graph_update(continent,trg_language,criteria):
     text_yaxis = translate(model,tok,"location")
     text_legend = translate(model,tok,'continent')
     bar_fig.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
-    yaxis_title=text_yaxis[0],legend_title=text_legend[0],height=500)
+    yaxis_title=text_yaxis[0],legend_title=text_legend[0],height=500,template = graph_template)
 
     #Treemap
     data = data.dropna(subset=['total_cases','total_deaths','total_tests'])
-    treemap_fig = px.treemap(data, path=['continent','location'], values=criteria,color=criteria,height=600)
+    treemap_fig = px.treemap(data, path=['continent','location'], values=criteria,color=criteria,height=600,template = graph_template,
+                            color_continuous_scale=px.colors.sequential.YlOrRd)
     
     text_title = translate(model,tok,f'Tree map of {criteria} by continent - {continent}')
     text_legend = translate(model,tok,criteria)
 
     treemap_fig.update_layout(title = text_title[0],legend_title=text_legend[0])
-    return line_fig,bar_fig,treemap_fig
+    return bar_fig,treemap_fig
+
+
+
+@app.callback(Output('graph_map_continent','figure'),
+              [Input('dropdown_continent','value'),
+               Input('dropdown_language','value'),
+               Input('dropdown_criteria','value'),
+               ])
+def map_graph(continent,trg_language,criteria):
+    #line graph - continent
+    if continent !='All':
+        data = df_map_latest[df_map['continent']==continent]
+    else:
+        data = df_map
+    #data = data.groupby(['location','date']).sum().reset_index()
+    #data = data[data.location != 'World']
+    data = data.dropna(subset=['total_deaths','total_cases'])
+    fig_map = px.scatter_mapbox(data, lat="latitude", lon="longitude", color="total_deaths",size="total_cases",size_max=50,
+                       # animation_frame = 'date', animation_group = 'location',
+                        zoom=1.6,height=800,template = graph_template, color_continuous_scale=px.colors.sequential.YlOrRd,
+                       hover_data=['location','total_cases','total_deaths'])
+    #fig_map.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 0.0000004
+    
+    model = pretrain[trg_language]['model_tok'][0]
+    tok = pretrain[trg_language]['model_tok'][1]
+    
+    text_title = translate(model,tok,f'Map of {criteria} of Covid 19 by continent - {continent}')
+    text_xaxis = translate(model,tok,'date')
+    text_yaxis = translate(model,tok,criteria)
+    text_legend = translate(model,tok,'location')
+    fig_map.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
+    yaxis_title=text_yaxis[0],legend_title=text_legend[0],mapbox_style="open-street-map",
+    mapbox_layers=[
+        {
+            "below": 'traces',
+            "sourcetype": "raster",
+            "source": [
+                "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}"
+            ]
+        }
+      ])
+    # options - USGSImageryOnly
+    
+    return fig_map
 
 
 
