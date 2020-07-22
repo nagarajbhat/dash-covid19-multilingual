@@ -85,10 +85,10 @@ lang_supported = [
 # {'mr':'Marathi','jap':'Japanese'}
 
 #langs = ['en','fr','de']
-#langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
+langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
 #langs_dict = {'en':'English','de':'German'}
 
-langs_dict = {'en':'English'}
+#langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
 
