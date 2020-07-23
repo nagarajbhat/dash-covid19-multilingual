@@ -17,14 +17,22 @@ import numpy as np
 #import json
 from plotly.subplots import make_subplots
 import plotly
+from newsapi import NewsApiClient
 
-#df
-df = pd.read_csv('./data/owid-covid-data.csv')
+import urllib.request as requests
+
+
+# df - live integration
+url = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
+response = requests.urlopen(url)
+df_live = pd.read_csv(response)
+df= df_live
+#df = pd.read_csv('./data/owid-covid-data.csv')
 
 #create more dataframes
 df_na = df.dropna(subset=['total_cases','new_cases','total_deaths','new_deaths'])
 df_na['date'] = pd.to_datetime(df_na['date'])
-data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(3).iloc[-1]]
+data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(2).iloc[-1]]
 
 # dataframe for map
 country_codes = pd.read_csv('./data/countries_codes.csv')
@@ -54,6 +62,36 @@ criteria = {'total_cases':'Total cases','total_deaths':'Total Deaths','total_tes
 continents = ['All','Asia','Europe','Africa','North America','South America','Oceania']
 
 cols = plotly.colors.DEFAULT_PLOTLY_COLORS
+
+
+## variables - news api
+newsapi = NewsApiClient(api_key='020d9a51f8d5433cb6a571b7ca777088')
+
+# /v2/top-headlines
+top_headlines = newsapi.get_top_headlines(q='Covid',
+                                          #sources='bbc-news,the-verge',
+                                          #category='business',
+                                          language='en')
+                                          #country='us')
+print(len(top_headlines['articles']))
+top_headlines_title = [top_headlines['articles'][i]['title'] for i in range(len(top_headlines['articles']))]
+top_headlines_url = [top_headlines['articles'][i]['url'] for i in range(len(top_headlines['articles']))]
+top_headlines_source = [top_headlines['articles'][i]['source']['name'] for i in range(len(top_headlines['articles']))]
+
+#top_headlines_sources
+ # /v2/everything
+"""
+all_articles = newsapi.get_everything(q='bitcoin',
+                                      sources='bbc-news,the-verge',
+                                      domains='bbc.co.uk,techcrunch.com',
+                                      from_param='2017-12-01',
+                                      to='2017-12-12',
+                                      language='en',
+                                      sort_by='relevancy',
+                                      page=2)
+# /v2/sources
+sources = newsapi.get_sources()
+"""
 #-------------------------------------------------------------------------------------------------------
 #functions
 def get_model(src_lang,trg_lang):
@@ -296,6 +334,19 @@ tab1 = dbc.Card([
                 ])
         ])
 
+tab2 = dbc.Card([
+        dbc.CardBody([
+            # Init
+        html.Div([dbc.Card([
+                html.A(children=[top_headlines_title[i]],href=top_headlines_url[i]),
+                top_headlines_source[i]],
+                color='secondary') for i in range(len(top_headlines_title))]),
+        #html.Div(all_articles)
+
+       
+            ])
+    ])
+
 #nav
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
@@ -326,7 +377,9 @@ app.layout = dbc.Container([
             dbc.Row(navbar),
 
           dbc.Tabs([
-                 dbc.Tab(tab1, id="label_tab1"),
+                 dbc.Tab(tab1, id="label_tab1",label='Analysis'),
+                dbc.Tab(tab2, id="label_tab2",label="Covid headlines"),
+
                  
         ])
         ],
