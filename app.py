@@ -15,7 +15,6 @@ from transformers import MarianMTModel, MarianTokenizer
 from typing import List
 import numpy as np
 #import json
-from plotly.subplots import make_subplots
 import plotly
 from newsapi import NewsApiClient
 

@@ -25,6 +25,7 @@ joblib==0.15.1
 kiwisolver==1.2.0
 MarkupSafe==1.1.1
 matplotlib==3.2.2
+newsapi-python==0.2.6
 numpy==1.19.0
 packaging==20.4
 pandas==1.0.5
