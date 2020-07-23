@@ -15,6 +15,8 @@ from transformers import MarianMTModel, MarianTokenizer
 from typing import List
 import numpy as np
 #import json
+from plotly.subplots import make_subplots
+import plotly
 
 #df
 df = pd.read_csv('./data/owid-covid-data.csv')
@@ -50,6 +52,8 @@ ext_stylesheet = dbc.themes.DARKLY
 
 criteria = {'total_cases':'Total cases','total_deaths':'Total Deaths','total_tests':'Total tests'}
 continents = ['All','Asia','Europe','Africa','North America','South America','Oceania']
+
+cols = plotly.colors.DEFAULT_PLOTLY_COLORS
 #-------------------------------------------------------------------------------------------------------
 #functions
 def get_model(src_lang,trg_lang):
@@ -106,9 +110,9 @@ lang_supported = [
 
 #langs = ['en','fr','de']
 #langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
-langs_dict = {'en':'English','de':'German'}
+#langs_dict = {'en':'English','de':'German'}
 
-#langs_dict = {'en':'English'}
+langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
 
@@ -269,15 +273,18 @@ tab1 = dbc.Card([
                 #graphs
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_map_continent')]),
                 html.Br(),
-                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_line_continent')]),
-                html.Br(),
-                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_area_continent')]),
-                html.Br(),
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_treemap_continent')]),
                 html.Br(),
                 dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_bar_continent')]),
                 html.Br(),
                 
+                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_line_continent')]),
+                html.Br(),
+                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_area_continent')]),
+                html.Br(),
+                dbc.Spinner(color="primary",type="grow",children=[dcc.Graph(id='graph_compare_country')]),
+                html.Br(),
+               
                 html.H6(id="label_not_translated",children=["If any text in this dashboard is untranslated, type or copy paste it here this to translate!"]),
                 dcc.Input(id="input_text", type="text", placeholder=""),
                 html.Button('Translate', id='submit-val'),
@@ -477,6 +484,38 @@ def line_graphs(continent,trg_language,criteria):
     yaxis_title=text_yaxis[0],legend_title=text_legend[0])
 
     return line_fig,area_fig
+
+@app.callback(Output('graph_compare_country','figure'),
+              [Input('dropdown_continent','value'),
+               Input('dropdown_language','value'),
+               Input('dropdown_criteria','value'),
+               ])
+def country_graphs(continent,trg_language,criteria):
+    #line graph - continent
+    if continent !='All':
+        data = df[df['continent']==continent]
+    else:
+        data = df
+    #data = data.groupby(['location','date']).sum().reset_index()
+   # data = data.dropna(subset=["location","continent"])
+    data = data.groupby(['continent','date']).sum().reset_index()
+    #data = data[data['location']==country]
+
+    #new cases
+    area_fig = go.Figure()
+    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_cases'],name='new cases',mode='lines',fill='tonexty',line=dict(width=2, color=cols[0])))
+    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_deaths'],name='new deaths',mode='lines',fill='tozeroy',line=dict(width=2, color=cols[1])))
+    
+    model = pretrain[trg_language]['model_tok'][0]
+    tok = pretrain[trg_language]['model_tok'][1]
+    
+    text_title = translate(model,tok,f'Time line of Cases vs Deaths of Covid 19 by continent - {continent}')
+    text_xaxis = translate(model,tok,'date')
+    text_yaxis = translate(model,tok,'people')
+    area_fig.update_layout(template = graph_template,title=text_title[0], xaxis_title=text_xaxis[0],
+    yaxis_title=text_yaxis[0])
+    return area_fig
+
 
 
 @app.callback([Output('graph_bar_continent','figure'),
