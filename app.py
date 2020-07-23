@@ -363,23 +363,38 @@ def set_language(trg_language):
                ],
               [Input('dropdown_language','value')])
 def set_lables(trg_language):
-    model = pretrain[trg_language]['model_tok'][0]
-    tok = pretrain[trg_language]['model_tok'][1]    
+    #model = pretrain[trg_language]['model_tok'][0]
+    #tok = pretrain[trg_language]['model_tok'][1]    
     #label_tab1 = translate(model,tok,'Continent analysis')
-    label_select_language = translate(model,tok,'Select language')
-    label_select_continent = translate(model,tok,'Select the continent')
-    label_select_country = translate(model,tok,'Select the country')
-    label_select_criteria = translate(model,tok,'Select the criteria')
+    #label_select_language = translate(model,tok,'Select language')
+    #label_select_continent = translate(model,tok,'Select the continent')
+    #label_select_country = translate(model,tok,'Select the country')
+    #label_select_criteria = translate(model,tok,'Select the criteria')
 
-    label_info1 = translate(model,tok,"Location/Country")
-    label_info2 = translate(model,tok,"Date")
-    label_info3 = translate(model,tok,"total_cases")
-    label_info4 = translate(model,tok,"New cases")
-    label_info5 = translate(model,tok,"Total deaths")
-    label_info6 = translate(model,tok,"New deaths")
-    label_info7 = translate(model,tok,"total tests")
-    label_info8 = translate(model,tok,"New tests")
-    label_not_translated = translate(model,tok,'If any text in this dashboard is untranslated, type or copy paste it here this to translate.')
+    #label_info1 = translate(model,tok,"Location/Country")
+    #label_info2 = translate(model,tok,"Date")
+    #label_info3 = translate(model,tok,"total_cases")
+    #label_info4 = translate(model,tok,"New cases")
+    #label_info5 = translate(model,tok,"Total deaths")
+    #label_info6 = translate(model,tok,"New deaths")
+    #label_info7 = translate(model,tok,"total tests")
+    #label_info8 = translate(model,tok,"New tests")
+    #label_not_translated = translate(model,tok,'If any text in this dashboard is untranslated, type or copy paste it here this to translate.')
+
+    label_select_language = 'Select language'
+    label_select_continent = 'Select the continent'
+    label_select_country = 'Select the country'
+    label_select_criteria = 'Select the criteria'
+
+    label_info1 = "Location/Country"
+    label_info2 = "Date"
+    label_info3 = "total_cases"
+    label_info4 = "New cases"
+    label_info5 = "Total deaths"
+    label_info6 = "New deaths"
+    label_info7 = "total tests"
+    label_info8 = "New tests"
+    label_not_translated = 'If any text in this dashboard is untranslated, type or copy paste it here this to translate.'
 
     return label_select_language,label_select_continent,label_select_country,label_select_criteria,label_info1,label_info2,label_info3,label_info4,label_info5,label_info6,label_info7,label_info8,label_not_translated
     
