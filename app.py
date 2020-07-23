@@ -147,10 +147,11 @@ lang_supported = [
 # {'mr':'Marathi','jap':'Japanese'}
 
 #langs = ['en','fr','de']
-#langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
+
+langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
 #langs_dict = {'en':'English','de':'German'}
 
-langs_dict = {'en':'English'}
+#langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
 
@@ -556,8 +557,8 @@ def country_graphs(continent,trg_language,criteria):
 
     #new cases
     area_fig = go.Figure()
-    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_cases'],name='new cases',mode='lines',fill='tonexty',line=dict(width=2, color=cols[0])))
-    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_deaths'],name='new deaths',mode='lines',fill='tozeroy',line=dict(width=2, color=cols[1])))
+    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_cases'],name='total cases',mode='lines',fill='tonexty',line=dict(width=2, color=cols[0])))
+    area_fig.add_trace(go.Scatter(x=data['date'],y=data['total_deaths'],name='total deaths',mode='lines',fill='tozeroy',line=dict(width=2, color=cols[1])))
     
     model = pretrain[trg_language]['model_tok'][0]
     tok = pretrain[trg_language]['model_tok'][1]
@@ -586,10 +587,10 @@ def bar_graphs(continent,trg_language,criteria):
     else:
         data = data_latest
     data = data[data.location != 'World']
-    bar_fig = px.bar(data, x="location", y=criteria,color='continent')
-    text_title = translate(model,tok,f'{criteria} of Covid 19 by continent - {continent}')
-    text_xaxis = translate(model,tok,'criteria')
-    text_yaxis = translate(model,tok,"location")
+    bar_fig = px.bar(data, x="location", y=criteria,color="population",color_continuous_scale=px.colors.sequential.YlOrRd)
+    text_title = translate(model,tok,f'{criteria} vs population of Covid 19 - {continent}')
+    text_xaxis = translate(model,tok,'countries')
+    text_yaxis = translate(model,tok,criteria)
     text_legend = translate(model,tok,'continent')
     bar_fig.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
     yaxis_title=text_yaxis[0],legend_title=text_legend[0],height=500,template = graph_template)
