@@ -293,14 +293,25 @@ tab1 = dbc.Card([
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 
-navbar = dbc.NavbarSimple(
-   
-    brand=app_name,
-    brand_href="#",
-    color="secondary",
-
+navbar = dbc.Navbar(
+    [
+        html.A(
+            # Use row and col to control vertical alignment of logo / brand
+            dbc.Row(
+                [
+                   # dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                    dbc.Col(dbc.NavbarBrand("Multilingual Covid-19 Dashboard", className="ml-2",style={"font-size":25})),
+                ],
+                align="center",
+                no_gutters=True,
+            ),
+            href="https://plot.ly",
+        ),
+        dbc.NavbarToggler(id="navbar-toggler"),
+    ],
+    color="dark",
     dark=True,
-    style={'width':'100%','text-align':'left'}
+    style={'width':'100%'}
 )
 
 #app layout
@@ -308,7 +319,7 @@ app.layout = dbc.Container([
             dbc.Row(navbar),
 
           dbc.Tabs([
-                 dbc.Tab(tab1, id="label_tab1",label="Analysis"),
+                 dbc.Tab(tab1, id="label_tab1"),
                  
         ])
         ],
@@ -333,8 +344,7 @@ def set_language(trg_language):
     language_updated = [f'language has been updated to {trg_language_label}']
     return language_updated
 
-@app.callback([Output('label_tab1','label'),
-               Output('label_select_language','children'),
+@app.callback([Output('label_select_language','children'),
                Output('label_select_continent','children'),
              Output('label_select_country','children'),
                Output('label_select_criteria','children'),
@@ -355,7 +365,7 @@ def set_language(trg_language):
 def set_lables(trg_language):
     model = pretrain[trg_language]['model_tok'][0]
     tok = pretrain[trg_language]['model_tok'][1]    
-    label_tab1 = translate(model,tok,'Continent analysis')
+    #label_tab1 = translate(model,tok,'Continent analysis')
     label_select_language = translate(model,tok,'Select language')
     label_select_continent = translate(model,tok,'Select the continent')
     label_select_country = translate(model,tok,'Select the country')
@@ -371,7 +381,7 @@ def set_lables(trg_language):
     label_info8 = translate(model,tok,"New tests")
     label_not_translated = translate(model,tok,'If any text in this dashboard is untranslated, type or copy paste it here this to translate.')
 
-    return label_tab1,label_select_language,label_select_continent,label_select_country,label_select_criteria,label_info1,label_info2,label_info3,label_info4,label_info5,label_info6,label_info7,label_info8,label_not_translated
+    return label_select_language,label_select_continent,label_select_country,label_select_criteria,label_info1,label_info2,label_info3,label_info4,label_info5,label_info6,label_info7,label_info8,label_not_translated
     
 @app.callback([Output('dropdown_continent','value'),
                 Output('location_country','children'),
@@ -498,13 +508,14 @@ def bar_graphs(continent,trg_language,criteria):
 def map_graph(continent,trg_language,criteria):
     #line graph - continent
     if continent !='All':
-        data = df_map_latest[df_map['continent']==continent]
+        data = df_map_latest[df_map_latest['continent']==continent]
     else:
-        data = df_map
+        data = df_map_latest
     #data = data.groupby(['location','date']).sum().reset_index()
     #data = data[data.location != 'World']
     data = data.dropna(subset=['total_deaths','total_cases'])
-    fig_map = px.scatter_mapbox(data, lat="latitude", lon="longitude", color="total_deaths",size="total_cases",size_max=50,
+    fig_map = px.scatter_mapbox(data, lat="latitude", lon="longitude", color=criteria,size=criteria,
+                        size_max=40,mapbox_style="carto-darkmatter",
                        # animation_frame = 'date', animation_group = 'location',
                         zoom=1.6,height=800,template = graph_template, color_continuous_scale=px.colors.sequential.YlOrRd,
                        hover_data=['location','total_cases','total_deaths'])
@@ -518,16 +529,18 @@ def map_graph(continent,trg_language,criteria):
     text_yaxis = translate(model,tok,criteria)
     text_legend = translate(model,tok,'location')
     fig_map.update_layout(title=text_title[0], xaxis_title=text_xaxis[0],
-    yaxis_title=text_yaxis[0],legend_title=text_legend[0],mapbox_style="open-street-map",
-    mapbox_layers=[
-        {
-            "below": 'traces',
-            "sourcetype": "raster",
-            "source": [
-                "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}"
-            ]
-        }
-      ])
+    yaxis_title=text_yaxis[0],legend_title=text_legend[0])
+    #mapbox_accesstoken="pk.eyJ1IjoibmFnYXJhamJoYXQiLCJhIjoiY2tjeTJibTEwMDVzOTM1azczdHppeGw4dCJ9.a_o1eljq2K4DL0m9iu5F3A"
+    #mapbox_layers=[
+     #   {
+      #      "below": 'traces',
+       #     "sourcetype": "raster",
+         #   "source": [
+          #      "https://basemap.nationalmap.gov/arcgis/rest/services/DeLorme_World_Base_Map/MapServer/tile/{z}/{y}/{x}"
+           # ]
+        #}
+      #]
+      
     # options - USGSImageryOnly
     
     return fig_map
