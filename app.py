@@ -31,7 +31,7 @@ df= df_live
 #create more dataframes
 df_na = df.dropna(subset=['total_cases','new_cases','total_deaths','new_deaths'])
 df_na['date'] = pd.to_datetime(df_na['date'])
-data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(2).iloc[-1]]
+data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(1).iloc[-1]]
 
 # dataframe for map
 country_codes = pd.read_csv('./data/countries_codes.csv')
