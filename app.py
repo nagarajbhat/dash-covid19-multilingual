@@ -595,7 +595,13 @@ def bar_graphs(continent,trg_language,criteria):
     yaxis_title=text_yaxis[0],legend_title=text_legend[0],height=500,template = graph_template)
 
     #Treemap
-    data = data.dropna(subset=['total_cases','total_deaths','total_tests'])
+    #data = data.dropna(subset=['total_cases','total_deaths'])
+    if continent !='All':
+        data = data_latest[data_latest['continent']==continent]
+    else:
+        data = data_latest  
+    data = data[data.location != 'World']
+
     treemap_fig = px.treemap(data, path=['continent','location'], values=criteria,color=criteria,height=600,template = graph_template,
                             color_continuous_scale=px.colors.sequential.YlOrRd)
     
