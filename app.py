@@ -693,9 +693,9 @@ def news_update(trg_language):
     #tok = pretrain[trg_language]['model_tok'][1]
     
     # /v2/top-headlines
-    top_headlines = newsapi.get_top_headlines(q='Covid',
-                                          #sources='bbc-news,the-verge',
-                                          #category='business',
+    top_headlines = newsapi.get_top_headlines(q='covid',
+                                          #sources='cnn,bbc-news,the-verge',
+                                          #category='entertainment',
                                           language=trg_language)
                                           #country='us')
     #mod_tok1 = get_model('en','fr')
@@ -714,9 +714,12 @@ def news_update(trg_language):
                 dbc.CardHeader([html.A(id="news_title_url",children=[top_headlines_title[i]],href=top_headlines_url[i])
                                     ,html.P("|"+top_headlines_source[i]+"|"+top_headlines_date[i])]),
                 dbc.CardBody([html.P(id="news_source",children=top_headlines_description[i]),
-                              html.Img(src=top_headlines_img[i],alt="image",height="80%", width="80%")]),
+                              html.Img(src=top_headlines_img[i],alt="image",style={
+                                'max-width': '70%','max-height': '70%',
+                                'margin': 'auto','display': 'block'}
+                                )]),
                 ],
-                color='secondary',style={"width":400,"height":400,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
+                color='secondary',style={"max-width":300,"height":400,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
     #top_headlines_sources
     # /v2/everything
     return news_all
