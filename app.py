@@ -695,9 +695,9 @@ def news_update(trg_language):
     # /v2/top-headlines
     top_headlines = newsapi.get_top_headlines(q='covid',
                                           #sources='cnn,bbc-news,the-verge',
-                                          #category='entertainment',
+                                          #category='health',
                                           language=trg_language)
-                                          #country='us')
+                                          #country='de')
     #mod_tok1 = get_model('en','fr')
 
     #top_headlines_title = [str(translate(model,tok,top_headlines['articles'][i]['title'])[0]) for i in range(len(top_headlines['articles']))]
