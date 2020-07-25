@@ -17,80 +17,11 @@ import numpy as np
 #import json
 import plotly
 from newsapi import NewsApiClient
-
+import datetime
 import urllib.request as requests
 
 
-# df - live integration
-url = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
-response = requests.urlopen(url)
-df_live = pd.read_csv(response)
-df= df_live
-#df = pd.read_csv('./data/owid-covid-data.csv')
 
-#create more dataframes
-df_na = df.dropna(subset=['total_cases','new_cases','total_deaths','new_deaths'])
-df_na['date'] = pd.to_datetime(df_na['date'])
-data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(1).iloc[-1]]
-
-# dataframe for map
-country_codes = pd.read_csv('./data/countries_codes.csv')
-df_code  = country_codes.filter(['alpha2','alpha3'])
-df_code['alpha3'] = df_code['alpha3'].str.upper()
-df_code['alpha2'] = df_code['alpha2'].str.upper()
-
-df_merged = df.merge(df_code,left_on='iso_code',right_on='alpha3') #merging country codes
-
-df_loc = pd.read_csv('./data/countries.csv')
-df_loc = df_loc.filter(['country','latitude','longitude']) 
-df_map = df_merged.merge(df_loc,left_on='alpha2',right_on='country') #merging lat long
-
-df_map_latest = df_map[df_map['date']==df_map['date'].max()]
-
-
-
-
-
-
-
-#variables
-graph_template = "plotly_dark"
-ext_stylesheet = dbc.themes.DARKLY
-
-criteria = {'total_cases':'Total cases','total_deaths':'Total Deaths','total_tests':'Total tests'}
-continents = ['All','Asia','Europe','Africa','North America','South America','Oceania']
-
-cols = plotly.colors.DEFAULT_PLOTLY_COLORS
-
-
-## variables - news api
-newsapi = NewsApiClient(api_key='020d9a51f8d5433cb6a571b7ca777088')
-
-# /v2/top-headlines
-top_headlines = newsapi.get_top_headlines(q='Covid',
-                                          #sources='bbc-news,the-verge',
-                                          #category='business',
-                                          language='en')
-                                          #country='us')
-print(len(top_headlines['articles']))
-top_headlines_title = [top_headlines['articles'][i]['title'] for i in range(len(top_headlines['articles']))]
-top_headlines_url = [top_headlines['articles'][i]['url'] for i in range(len(top_headlines['articles']))]
-top_headlines_source = [top_headlines['articles'][i]['source']['name'] for i in range(len(top_headlines['articles']))]
-
-#top_headlines_sources
- # /v2/everything
-"""
-all_articles = newsapi.get_everything(q='bitcoin',
-                                      sources='bbc-news,the-verge',
-                                      domains='bbc.co.uk,techcrunch.com',
-                                      from_param='2017-12-01',
-                                      to='2017-12-12',
-                                      language='en',
-                                      sort_by='relevancy',
-                                      page=2)
-# /v2/sources
-sources = newsapi.get_sources()
-"""
 #-------------------------------------------------------------------------------------------------------
 #functions
 def get_model(src_lang,trg_lang):
@@ -148,11 +79,69 @@ lang_supported = [
 #langs = ['en','fr','de']
 
 #langs_dict = {'en':'English','de':'German','fr':'French','ru':'Russian','ga':'Irish','da':'Danish','id':'Indonesian'}
-#langs_dict = {'en':'English','de':'German'}
+#langs_dict = {'en':'English','de':'German','fr':'French'}
 
 langs_dict = {'en':'English'}
 
 #-------------------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------------------------------------
+# df - live integration
+url = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
+response = requests.urlopen(url)
+df_live = pd.read_csv(response)
+df= df_live
+#df = pd.read_csv('./data/owid-covid-data.csv')
+
+#create more dataframes
+df_na = df.dropna(subset=['total_cases','new_cases','total_deaths','new_deaths'])
+df_na['date'] = pd.to_datetime(df_na['date'])
+data_latest = df_na[df_na['date']==df_na['date'].drop_duplicates().nlargest(1).iloc[-1]]
+
+# dataframe for map
+country_codes = pd.read_csv('./data/countries_codes.csv')
+df_code  = country_codes.filter(['alpha2','alpha3'])
+df_code['alpha3'] = df_code['alpha3'].str.upper()
+df_code['alpha2'] = df_code['alpha2'].str.upper()
+
+df_merged = df.merge(df_code,left_on='iso_code',right_on='alpha3') #merging country codes
+
+df_loc = pd.read_csv('./data/countries.csv')
+df_loc = df_loc.filter(['country','latitude','longitude']) 
+df_map = df_merged.merge(df_loc,left_on='alpha2',right_on='country') #merging lat long
+
+df_map_latest = df_map[df_map['date']==df_map['date'].max()]
+
+
+
+#variables
+graph_template = "plotly_dark"
+ext_stylesheet = dbc.themes.DARKLY
+
+criteria = {'total_cases':'Total cases','total_deaths':'Total Deaths','total_tests':'Total tests'}
+continents = ['All','Asia','Europe','Africa','North America','South America','Oceania']
+
+cols = plotly.colors.DEFAULT_PLOTLY_COLORS
+
+
+## variables - news api
+newsapi = NewsApiClient(api_key='020d9a51f8d5433cb6a571b7ca777088')
+
+
+"""
+all_articles = newsapi.get_everything(q='bitcoin',
+                                      sources='bbc-news,the-verge',
+                                      domains='bbc.co.uk,techcrunch.com',
+                                      from_param='2017-12-01',
+                                      to='2017-12-12',
+                                      language='en',
+                                      sort_by='relevancy',
+                                      page=2)
+# /v2/sources
+sources = newsapi.get_sources()
+"""
+
 
 """
 pre-train
@@ -166,7 +155,8 @@ pretrain = {i:{'model_tok':get_model('en',i)} for i in langs_dict.keys()}
 
 #pretranslated = {i:{'translated_text':translate(pretrain[i]['model_tok'][0],
  #                                               pretrain[i]['model_tok'][1]) for i in lang_dict.keys()}}
-#------------------------------------------------------------------------------------------
+ 
+#------------------------------------------------------------------------------------------------------------
 #app
 app = dash.Dash('dash-covid19-translator',
                 meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
@@ -238,8 +228,9 @@ controls_1c =     dbc.Form([
 )
             ]
         )
-                    ])
-            
+              
+      ])
+
 
 
 
@@ -336,11 +327,9 @@ tab1 = dbc.Card([
 
 tab2 = dbc.Card([
         dbc.CardBody([
+        
             # Init
-        html.Div([dbc.Card([
-                html.A(children=[top_headlines_title[i]],href=top_headlines_url[i]),
-                top_headlines_source[i]],
-                color='secondary') for i in range(len(top_headlines_title))]),
+        dbc.Spinner(color="primary",type="grow",children=html.Div(id="news_all")),
         #html.Div(all_articles)
 
        
@@ -669,6 +658,43 @@ def text_translation(n_clicks,trg_language,input_text):
     tok = pretrain[trg_language]['model_tok'][1]
     output = translate(model,tok,input_text)
     return output
+#there is one way to make it work currently and that is to remove set_language and 
+#pass dropdown_language directly to graph_update    
+    
+
+
+@app.callback(Output('news_all','children'),
+               [Input('dropdown_language','value')])
+def news_update(trg_language):
+    model = pretrain[trg_language]['model_tok'][0]
+    tok = pretrain[trg_language]['model_tok'][1]
+    
+    # /v2/top-headlines
+    top_headlines = newsapi.get_top_headlines(q='Covid',
+                                          #sources='bbc-news,the-verge',
+                                          #category='business',
+                                          language='en')
+                                          #country='us')
+    #mod_tok1 = get_model('en','fr')
+
+    top_headlines_title = [str(translate(model,tok,top_headlines['articles'][i]['title'])[0]) for i in range(len(top_headlines['articles']))]
+    top_headlines_url = [top_headlines['articles'][i]['url'] for i in range(len(top_headlines['articles']))]
+    top_headlines_source = [str(top_headlines['articles'][i]['source']['name']) for i in range(len(top_headlines['articles']))]
+    top_headlines_content = [str(top_headlines['articles'][i]['content']).split("[")[0] for i in range(len(top_headlines['articles']))]
+    top_headlines_description = [str(top_headlines['articles'][i]['description']) for i in range(len(top_headlines['articles']))]
+    top_headlines_date =  [str(datetime.datetime.date(pd.to_datetime(top_headlines['articles'][i]['publishedAt']))) for i in range(len(top_headlines['articles']))]
+    top_headlines_img =  [str(top_headlines['articles'][i]['urlToImage']) for i in range(len(top_headlines['articles']))]
+    
+    news_all= [dbc.Card([
+                dbc.CardHeader([html.A(id="news_title_url",children=[top_headlines_title[i]],href=top_headlines_url[i])
+                                    ,html.P("|"+top_headlines_source[i]+"|"+top_headlines_date[i])]),
+                dbc.CardBody([html.P(id="news_source",children=top_headlines_description[i]),
+                              html.Img(src=top_headlines_img[i],alt="image",height="300", width="80%")]),
+                ],
+                color='secondary',style={"width":500,"height":500,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
+    #top_headlines_sources
+    # /v2/everything
+    return news_all
 #there is one way to make it work currently and that is to remove set_language and 
 #pass dropdown_language directly to graph_update    
 
