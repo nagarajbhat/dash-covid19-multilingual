@@ -132,6 +132,11 @@ news_language_list = {'ar':'Arabic','de':'German','en':'English','es':'Spanish',
                 'it':'Italian','nl':'Dutch','no':'Norwegian','pt':'Portuguese','ru':'Russian','se':'Northern Sami',
                 'ud':'Udmurt','zh':'Chinese'}
 
+news_country_list = ['all','ae','ar','at','au','be','bg','br','ca','ch','cn','co','cu','cz','de','eg','fr','gb','gr','hk',
+                'hu','id','ie','il','in','it','jp','kr','lt','lv','ma','mx','my','ng','nl','no','nz','ph','pl','pt',
+                'ro','rs','ru','sa','se','sg','si','sk','th','tr','tw','ua','us','ve','za']
+news_category_list = ['business','entertainment','general','health','science','sports','technology']
+
 """
 all_articles = newsapi.get_everything(q='bitcoin',
                                       sources='bbc-news,the-verge',
@@ -250,6 +255,38 @@ controls_2a = dbc.Form(
 
              ]),
 
+controls_2b = dbc.Form(
+        [
+                dbc.FormGroup([
+                    dbc.Label(id='label_news_country',children=['Select news Country']),
+                    dcc.Dropdown(
+                            id = 'dropdown_news_country',
+                            options = [{'label':i,'value':i}  for i in news_country_list],
+                            value = 'all',
+                             style={'color':'black'}
+                            )
+                    ]
+        ),
+                dbc.Spinner(color="secondary",type="grow",children=[dbc.Card(dbc.CardBody(id='news_country_updated'))   ])
+
+             ]),
+
+controls_2c = dbc.Form(
+        [
+                dbc.FormGroup([
+                    dbc.Label(id='label_news_category',children=['Select news Category']),
+                    dcc.Dropdown(
+                            id = 'dropdown_news_category',
+                            options = [{'label':i,'value':i}  for i in news_category_list],
+                            value = 'health',
+                             style={'color':'black'}
+                            )
+                    ]
+        ),
+                dbc.Spinner(color="secondary",type="grow",children=[dbc.Card(dbc.CardBody(id='news_category_updated'))   ])
+
+             ]),
+
 
 
 #tabs
@@ -348,8 +385,10 @@ tab2 = dbc.Card([
         
             # Init
         dbc.Row([
-                dbc.Col(controls_2a,md=4)
-                
+                dbc.Col(controls_2a,md=4),
+                dbc.Col(controls_2b,md=4),
+                dbc.Col(controls_2c,md=4)
+
     
                 ]),
         dbc.Spinner(color="primary",type="grow",children=html.Div(id="news_all")),
@@ -687,17 +726,29 @@ def text_translation(n_clicks,trg_language,input_text):
 
 
 @app.callback(Output('news_all','children'),
-               [Input('dropdown_news_language','value')])
-def news_update(trg_language):
+               [Input('dropdown_news_language','value'),
+               Input('dropdown_news_country','value'),
+                Input('dropdown_news_category','value')])
+def news_update(trg_language,country,category):
     #model = pretrain[trg_language]['model_tok'][0]
     #tok = pretrain[trg_language]['model_tok'][1]
     
     # /v2/top-headlines
-    top_headlines = newsapi.get_top_headlines(q='covid',
+
+    if country=='all':
+        top_headlines = newsapi.get_top_headlines(q='covid',
                                           #sources='cnn,bbc-news,the-verge',
-                                          #category='health',
+                                          #sources='cdc,who',
+                                          category=category,
                                           language=trg_language)
-                                          #country='de')
+    else:
+        top_headlines = newsapi.get_top_headlines(q='covid',
+                                          #sources='cnn,bbc-news,the-verge',
+                                          #sources='cdc,who',
+                                          country=country,
+                                          category=category,
+                                          language=trg_language)
+
     #mod_tok1 = get_model('en','fr')
 
     #top_headlines_title = [str(translate(model,tok,top_headlines['articles'][i]['title'])[0]) for i in range(len(top_headlines['articles']))]
