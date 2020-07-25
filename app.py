@@ -664,7 +664,7 @@ def text_translation(n_clicks,trg_language,input_text):
 
 
 @app.callback(Output('news_all','children'),
-               [Input('dropdown_language','value')])
+               [Input('news_language','value')])
 def news_update(trg_language):
     model = pretrain[trg_language]['model_tok'][0]
     tok = pretrain[trg_language]['model_tok'][1]
@@ -673,7 +673,7 @@ def news_update(trg_language):
     top_headlines = newsapi.get_top_headlines(q='Covid',
                                           #sources='bbc-news,the-verge',
                                           #category='business',
-                                          language='en')
+                                          language=trg_language)
                                           #country='us')
     #mod_tok1 = get_model('en','fr')
 
@@ -691,7 +691,7 @@ def news_update(trg_language):
                 dbc.CardBody([html.P(id="news_source",children=top_headlines_description[i]),
                               html.Img(src=top_headlines_img[i],alt="image",height="300", width="80%")]),
                 ],
-                color='secondary',style={"width":500,"height":500,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
+                color='secondary',style={"width":400,"height":400,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
     #top_headlines_sources
     # /v2/everything
     return news_all
