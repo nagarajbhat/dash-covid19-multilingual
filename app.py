@@ -128,6 +128,9 @@ cols = plotly.colors.DEFAULT_PLOTLY_COLORS
 ## variables - news api
 newsapi = NewsApiClient(api_key='020d9a51f8d5433cb6a571b7ca777088')
 
+news_language_list = {'ar':'Arabic','de':'German','en':'English','es':'Spanish','fr':'French','he':'Hebrew',
+                'it':'Italian','nl':'Dutch','no':'Norwegian','pt':'Portuguese','ru':'Russian','se':'Northern Sami',
+                'ud':'Udmurt','zh':'Chinese'}
 
 """
 all_articles = newsapi.get_everything(q='bitcoin',
@@ -231,6 +234,21 @@ controls_1c =     dbc.Form([
               
       ])
 
+controls_2a = dbc.Form(
+        [
+                dbc.FormGroup([
+                    dbc.Label(id='label_news_language',children=['Select news language']),
+                    dcc.Dropdown(
+                            id = 'dropdown_news_language',
+                            options = [{'label':news_language_list[i],'value':i} for i in news_language_list.keys()],
+                            value = 'en',
+                             style={'color':'black'}
+                            )
+                    ]
+        ),
+                dbc.Spinner(color="secondary",type="grow",children=[dbc.Card(dbc.CardBody(id='news_language_updated'))   ])
+
+             ]),
 
 
 
@@ -329,6 +347,11 @@ tab2 = dbc.Card([
         dbc.CardBody([
         
             # Init
+        dbc.Row([
+                dbc.Col(controls_2a,md=4)
+                
+    
+                ]),
         dbc.Spinner(color="primary",type="grow",children=html.Div(id="news_all")),
         #html.Div(all_articles)
 
@@ -664,10 +687,10 @@ def text_translation(n_clicks,trg_language,input_text):
 
 
 @app.callback(Output('news_all','children'),
-               [Input('news_language','value')])
+               [Input('dropdown_news_language','value')])
 def news_update(trg_language):
-    model = pretrain[trg_language]['model_tok'][0]
-    tok = pretrain[trg_language]['model_tok'][1]
+    #model = pretrain[trg_language]['model_tok'][0]
+    #tok = pretrain[trg_language]['model_tok'][1]
     
     # /v2/top-headlines
     top_headlines = newsapi.get_top_headlines(q='Covid',
@@ -677,7 +700,9 @@ def news_update(trg_language):
                                           #country='us')
     #mod_tok1 = get_model('en','fr')
 
-    top_headlines_title = [str(translate(model,tok,top_headlines['articles'][i]['title'])[0]) for i in range(len(top_headlines['articles']))]
+    #top_headlines_title = [str(translate(model,tok,top_headlines['articles'][i]['title'])[0]) for i in range(len(top_headlines['articles']))]
+    top_headlines_title = [str(top_headlines['articles'][i]['title']) for i in range(len(top_headlines['articles']))]
+    
     top_headlines_url = [top_headlines['articles'][i]['url'] for i in range(len(top_headlines['articles']))]
     top_headlines_source = [str(top_headlines['articles'][i]['source']['name']) for i in range(len(top_headlines['articles']))]
     top_headlines_content = [str(top_headlines['articles'][i]['content']).split("[")[0] for i in range(len(top_headlines['articles']))]
@@ -689,7 +714,7 @@ def news_update(trg_language):
                 dbc.CardHeader([html.A(id="news_title_url",children=[top_headlines_title[i]],href=top_headlines_url[i])
                                     ,html.P("|"+top_headlines_source[i]+"|"+top_headlines_date[i])]),
                 dbc.CardBody([html.P(id="news_source",children=top_headlines_description[i]),
-                              html.Img(src=top_headlines_img[i],alt="image",height="300", width="80%")]),
+                              html.Img(src=top_headlines_img[i],alt="image",height="80%", width="80%")]),
                 ],
                 color='secondary',style={"width":400,"height":400,"display":"flex","float":"left",  "margin": 20}) for i in range(len(top_headlines_title))]
     #top_headlines_sources
