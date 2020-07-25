@@ -125,8 +125,8 @@ continents = ['All','Asia','Europe','Africa','North America','South America','Oc
 cols = plotly.colors.DEFAULT_PLOTLY_COLORS
 
 
-## variables - news api
-newsapi = NewsApiClient(api_key='020d9a51f8d5433cb6a571b7ca777088')
+## variables - news api  - give your api key here ..
+newsapi = NewsApiClient(api_key='')
 
 news_language_list = {'ar':'Arabic','de':'German','en':'English','es':'Spanish','fr':'French','he':'Hebrew',
                 'it':'Italian','nl':'Dutch','no':'Norwegian','pt':'Portuguese','ru':'Russian','se':'Northern Sami',
