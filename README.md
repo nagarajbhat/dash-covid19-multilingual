@@ -1,7 +1,9 @@
 ## Description
 A Multilingual Covid-19 dashboard built using plotly Dash, used Hugging face transformer - MarianMT for translation.
 Also has live news feed built using newsapi.
-Single language version of this app is currently deployed in heroku - [here](https://dash-covid19-multilingual.herokuapp.com/)
+Single language version of this app is currently [deployed in heroku - here](https://dash-covid19-multilingual.herokuapp.com/)
+
+This project trended on the subreddit r/dataisbeautiful - [link to the post](https://www.reddit.com/r/dataisbeautiful/comments/hxlew9/i_am_building_a_multilingual_covid19_dashboard/)
 
 ### Screenshots - 
 
