@@ -3,7 +3,7 @@ A Multilingual Covid-19 dashboard built using plotly Dash, used Hugging face tra
 Also has live news feed built using newsapi.
 Single language version of this app is currently [deployed in heroku - here](https://dash-covid19-multilingual.herokuapp.com/)
 
-This project trended on the subreddit r/dataisbeautiful - [link to the post](https://www.reddit.com/r/dataisbeautiful/comments/hxlew9/i_am_building_a_multilingual_covid19_dashboard/)
+This project trended on the subreddit r/dataisbeautiful with over 8k upvotes - [link to the post](https://www.reddit.com/r/dataisbeautiful/comments/hxlew9/i_am_building_a_multilingual_covid19_dashboard/)
 
 ### Screenshots - 
 
